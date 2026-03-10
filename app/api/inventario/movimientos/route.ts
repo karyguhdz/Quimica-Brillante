@@ -27,7 +27,7 @@ function validatePayload(payload: MovimientoPayload) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient(request);
   const payload = (await request.json()) as MovimientoPayload;
   const validationError = validatePayload(payload);
 

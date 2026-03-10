@@ -4,7 +4,6 @@ import { getSupabaseServerClient } from '@/lib/supabase-server';
 type VentaItem = {
   producto_id?: string;
   cantidad?: number;
-  precio_unitario?: number;
 };
 
 type VentaPayload = {
@@ -28,15 +27,12 @@ function validatePayload(payload: VentaPayload) {
     if (!item.cantidad || !Number.isInteger(item.cantidad) || item.cantidad <= 0) {
       return 'La cantidad de cada item debe ser un entero mayor a 0.';
     }
-    if (typeof item.precio_unitario !== 'number' || Number.isNaN(item.precio_unitario) || item.precio_unitario < 0) {
-      return 'El precio unitario de cada item debe ser válido.';
-    }
   }
 
   return null;
 }
 
-async function resolveUsuarioId(supabase: ReturnType<typeof getSupabaseServerClient>, requestedUserId?: string) {
+async function resolveUsuarioId(supabase: Awaited<ReturnType<typeof getSupabaseServerClient>>, requestedUserId?: string) {
   if (requestedUserId) return requestedUserId;
 
   const { data, error } = await supabase.from('usuarios').select('id').limit(1).maybeSingle();
@@ -48,7 +44,7 @@ async function resolveUsuarioId(supabase: ReturnType<typeof getSupabaseServerCli
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient(request);
   const payload = (await request.json()) as VentaPayload;
   const validationError = validatePayload(payload);
 

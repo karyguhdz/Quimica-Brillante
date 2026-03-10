@@ -167,6 +167,7 @@ declare
   v_producto_id uuid;
   v_cantidad integer;
   v_precio_unitario numeric(12,2);
+  v_precio_catalogo numeric(12,2);
 begin
   if p_metodo_pago not in ('efectivo', 'transferencia', 'tarjeta') then
     raise exception 'Método de pago inválido';
@@ -180,9 +181,8 @@ begin
   loop
     v_producto_id := (v_item->>'producto_id')::uuid;
     v_cantidad := (v_item->>'cantidad')::integer;
-    v_precio_unitario := (v_item->>'precio_unitario')::numeric;
 
-    if v_producto_id is null or v_cantidad is null or v_precio_unitario is null then
+    if v_producto_id is null or v_cantidad is null then
       raise exception 'Item incompleto en la venta';
     end if;
 
@@ -190,11 +190,16 @@ begin
       raise exception 'Cantidad inválida en item';
     end if;
 
-    if v_precio_unitario < 0 then
-      raise exception 'Precio unitario inválido en item';
+    select precio
+    into v_precio_catalogo
+    from public.productos
+    where id = v_producto_id and activo = true;
+
+    if v_precio_catalogo is null then
+      raise exception 'Producto inválido o inactivo en item de venta';
     end if;
 
-    v_total := v_total + (v_cantidad * v_precio_unitario);
+    v_total := v_total + (v_cantidad * v_precio_catalogo);
   end loop;
 
   if p_metodo_pago = 'efectivo' and (p_monto_recibido is null or p_monto_recibido < v_total) then
@@ -211,7 +216,15 @@ begin
   loop
     v_producto_id := (v_item->>'producto_id')::uuid;
     v_cantidad := (v_item->>'cantidad')::integer;
-    v_precio_unitario := (v_item->>'precio_unitario')::numeric;
+
+    select precio
+    into v_precio_unitario
+    from public.productos
+    where id = v_producto_id and activo = true;
+
+    if v_precio_unitario is null then
+      raise exception 'Producto inválido o inactivo en item de venta';
+    end if;
 
     insert into public.venta_detalle (venta_id, producto_id, cantidad, precio_unitario, subtotal)
     values (v_venta_id, v_producto_id, v_cantidad, v_precio_unitario, (v_cantidad * v_precio_unitario));

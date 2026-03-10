@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
-  const supabase = getSupabaseServerClient();
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const supabase = await getSupabaseServerClient(request);
 
   const { data, error } = await supabase
     .from('ventas')
