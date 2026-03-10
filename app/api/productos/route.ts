@@ -46,7 +46,7 @@ function validatePayload(payload: ProductoPayload) {
 }
 
 export async function GET(request: NextRequest) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient(request);
   const q = request.nextUrl.searchParams.get('q')?.trim();
 
   let query = supabase
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient(request);
   const payload = (await request.json()) as ProductoPayload;
   const validationError = validatePayload(payload);
 

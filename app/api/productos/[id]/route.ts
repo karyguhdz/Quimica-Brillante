@@ -36,7 +36,7 @@ function validateUpdate(payload: UpdatePayload) {
 }
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient(request);
   const payload = (await request.json()) as UpdatePayload;
   const validationError = validateUpdate(payload);
 
@@ -64,8 +64,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   return NextResponse.json({ data });
 }
 
-export async function PATCH(_request: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = getSupabaseServerClient();
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  const supabase = await getSupabaseServerClient(request);
   const { data, error } = await supabase
     .from('productos')
     .update({ activo: false })
